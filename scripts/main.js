@@ -1,5 +1,5 @@
 const FOAF = $rdf.Namespace('http://xmlns.com/foaf/0.1/');
-const VCARD = new $rdf.Namespace('http://www.w3.org/2006/vcard/ns#')
+const VCARD = new $rdf.Namespace('http://www.w3.org/2006/vcard/ns#');
 // const VCARD = new $rdf.Namespace('http://www.w3.org/2018/vcard-new/1#');
 
 // Log the user in and out on click
@@ -15,17 +15,19 @@ solid.auth.trackSession(session => {
   if (loggedIn) {
     $('#user').text(session.webId);
     // Use the user's WebID as default profile
-    if (!$('#profile').val())
-      $('#profile').val(session.webId);
+    if (!$('#profile').val()) $('#profile').val(session.webId);
   }
 });
 
-$('#update').click(async => {
+$('#update').click(async () => {
   const store = $rdf.graph();
   const newname = $('#modname').val();
   const person = $('#profile').val();
+  console.log(person);
   const me = store.sym(person);
+  console.log(me);
   const profile = me.doc();
+  console.log(profile);
   store.add(me, VCARD('wow'), newname, profile);
   let name = store.any(me, VCARD('wow'), null, profile);
   console.log(name);
@@ -45,7 +47,7 @@ $('#update').click(async => {
 });
 
 //fetch data on user
-$('#view').click(async function loadProfile() {
+$('#view').click(async () => {
   // Set up a local data store and associated data fetcher
   const store = $rdf.graph();
   const fetcher = new $rdf.Fetcher(store);
@@ -56,10 +58,19 @@ $('#view').click(async function loadProfile() {
   const me = store.sym(person);
   const profile = me.doc();
 
-  // Display their details
-  let fullName = store.any(me, VCARD('wow'), null, profile);
-  console.log(fullName);
-  $('#fullName').text(fullName && fullName.value);
+  // // Display their details
+  // let fullName = store.any(me, VCARD('wow'));
+  // console.log(fullName);
+  // $('#fullName').text(fullName && fullName.value);
+
+  let fullNames = store.each(me, VCARD('wow'));
+  $('#fullName').empty();
+  fullNames.forEach(async(fullName) => {
+    $('#fullName').append(
+      $('<li>').text(fullName && fullName.value));
+  });
+  // console.log(fullName);
+  // $('#fullName').text(fullName && fullName.value);
 
   // Display their friends
   const friends = store.each($rdf.sym(person), FOAF('knows'));
